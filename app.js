@@ -1,5 +1,5 @@
 //jshint esversion:6
-
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
@@ -10,9 +10,18 @@ const mongoose = require("mongoose");
 const app = express();
 
 app.set('view engine', 'ejs');
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
+
+// const mongoAtlas = `mongodb+srv://admin-seyoung:${process.env.MONGODB_PW}@cluster0.kgiyy.mongodb.net/blogDB`
+
+// Mongo Atlas
+// mongoose.connect(mongoAtlas, {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// }).catch((e) => {
+//   console.log(e);
+// });
 
 mongoose.connect("mongodb://localhost:27017/blogDB", {
   useNewUrlParser: true,
@@ -34,7 +43,10 @@ app.get("/", function(req, res) {
   Post.find({}, function(err, foundPosts) {
     if (!err) {
       if (foundPosts.length === 0) {
-        res.redirect("/");
+        res.render("home", {
+          homeParagraph: homeStartingContent,
+          posts: []
+        });
       } else {
         res.render("home", {
           homeParagraph: homeStartingContent,

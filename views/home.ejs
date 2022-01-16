@@ -3,7 +3,7 @@
 <h1>Home</h1>
 <p><%= homeParagraph %> </p>
 
-<% posts.forEach(function(post) { %>
+<% if (posts.length !== 0) { posts.forEach(function(post) { %>
     <div>
         <h2><%= post.title %></h2>
         <!-- Truncate the content to 100 characters -->
@@ -12,6 +12,8 @@
             <a href="/posts/<%=post._id%>">Read More</a>
         </p>
     </div>
-<% }); %>
+<% })} else { %>
+    <div></div>
+<% } %> 
 
 <%- include("partials/footer") -%> 
