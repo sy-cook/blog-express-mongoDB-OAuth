@@ -6,6 +6,16 @@ const ejs = require("ejs");
 const req = require("express/lib/request");
 const _ = require("lodash");
 const mongoose = require("mongoose");
+const session = require("express-session");
+const passport = require("passport");
+const passportLocalMongoose = require("passport-local-mongoose");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const FacebookStrategy = require("passport-facebook").Strategy;
+const findOrCreate = require("mongoose-findorcreate");
+
+const faker = require('faker');
+
+const {writerModel, journalModel} = require('./models');
 
 const app = express();
 
@@ -13,36 +23,38 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static("public"));
 
-// const mongoAtlas = `mongodb+srv://admin-seyoung:${process.env.MONGODB_PW}@cluster0.kgiyy.mongodb.net/blogDB`
+// app.get('/writers', async (req, res) => {
+//   const writers = await writerModel.find({});
 
-// Mongo Atlas
-// mongoose.connect(mongoAtlas, {
-//   useNewUrlParser: true,
-//   useUnifiedTopology: true,
-// }).catch((e) => {
-//   console.log(e);
+//   res.json(writers);
 // });
 
-mongoose.connect("mongodb://localhost:27017/blogDB", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+// app.get('journals', async (req, res) => {
+//   const journals = await journalModel.find({});
 
-const homeStartingContent = "content";
-const aboutContent = "content";
-const contactContent = "content";
+//   res.json(journals);
+// });
 
-const postSchema = {
-  title: String,
-  content: String
-};
+// mongoose.connect("mongodb://localhost:27017/blogDB", {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// });
 
-const Post = mongoose.model("Post", postSchema);
+const homeStartingContent = faker.lorem.words(100);
+const aboutContent = faker.lorem.words(100);
+const contactContent = faker.lorem.words(100);
+
+// const postSchema = {
+//   title: String,
+//   content: String
+// };
+
+// const Journal = new mongoose.model("Journal", postSchema);
 
 app.get("/", function(req, res) {
-  Post.find({}, function(err, foundPosts) {
+  journalModel.find({}, function(err, foundJournals) {
     if (!err) {
-      if (foundPosts.length === 0) {
+      if (foundJournals.length === 0) {
         res.render("home", {
           homeParagraph: homeStartingContent,
           posts: []
@@ -50,7 +62,7 @@ app.get("/", function(req, res) {
       } else {
         res.render("home", {
           homeParagraph: homeStartingContent,
-          posts: foundPosts
+          posts: foundJournals
         });
       }
     }
@@ -58,25 +70,25 @@ app.get("/", function(req, res) {
 });
 
 app.post("/compose", function(req, res) {
-  const post = new Post({
-    title: req.body.postTitle,
-    content: req.body.postBody
+  const journal = new journalModel({
+    title: req.body.journalTitle,
+    content: req.body.journalBody
   });
 
-  post.save(function(err) {
+  journal.save(function(err) {
     if (!err) {
       res.redirect("/");
     }
   });
 });
 
-app.get('/posts/:postID', function(req, res) {
-  const postID = req.params.postID;
+app.get('/journals/:journalID', function(req, res) {
+  const journalID = req.params.journalID;
 
-  Post.findOne({_id: postID}, function(err, foundPost) {
+  journalModel.findOne({_id: journalID}, function(err, foundJournal) {
     if (!err) {
-      res.render("post", {
-        blogPost: foundPost
+      res.render("journal", {
+        journal: foundJournal
       });
     }
   });
@@ -98,6 +110,11 @@ app.get("/contact", function(req, res) {
   });
 });
 
-app.listen(3000, function() {
-  console.log("Server started on port 3000");
+app.get("/login", function(req, res) {
+  res.render("login");
 });
+
+const port = 3000;
+app.listen(port, () => console.log(`Server started at http://localhost:${port}`));
+
+
