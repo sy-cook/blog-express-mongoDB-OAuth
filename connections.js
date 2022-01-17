@@ -4,6 +4,7 @@ function makeNewConnection(uri) {
     const db = mongoose.createConnection(uri, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useCreateIndex: true
     });
 
     db.on('error', function (error) {

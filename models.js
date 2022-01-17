@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const {writerConnection, journalConnection} = require('./connections');
+const findOrCreate = require("mongoose-findorcreate");
 
 // const mongoAtlas = `mongodb+srv://admin-seyoung:${process.env.MONGODB_PW}@cluster0.kgiyy.mongodb.net/blogDB`
 
@@ -12,12 +13,16 @@ const {writerConnection, journalConnection} = require('./connections');
 // });
 
 const writerSchema = new mongoose.Schema({
-    name: String,
+    googleId: String,
     isActive: Boolean,
-}, {
+  }, {
     versionKey: false,
     timestamps: true,
-});
+  });
+  
+writerSchema.plugin(findOrCreate);
+
+const writerModel = writerConnection.model('Writer', writerSchema);
 
 const journalSchema = new mongoose.Schema({
     title: String,
@@ -27,10 +32,8 @@ const journalSchema = new mongoose.Schema({
     timestamps: true,
 });
 
-const writerModel = writerConnection.model('Writer', writerSchema);
 const journalModel = journalConnection.model('Journal', journalSchema);
 
 module.exports = {
-    writerModel,
-    journalModel,
+    writerModel, journalModel
 };
