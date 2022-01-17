@@ -8,15 +8,12 @@ const _ = require("lodash");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const passport = require("passport");
-const passportLocalMongoose = require("passport-local-mongoose");
+// const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-
-const findOrCreate = require("mongoose-findorcreate");
 
 const faker = require("faker");
 
-const { writerConnection, journalConnection } = require("./connections");
-// const {writerModel, journalModel} = require('./models');
+const {writerModel, journalModel} = require('./models');
 
 const app = express();
 
@@ -35,32 +32,10 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-const writerSchema = new mongoose.Schema(
-  {
-    googleId: String,
-    email: String,
-    password: String,
-    isActive: Boolean,
-  },
-  {
-    versionKey: false,
-    timestamps: true,
-  }
-);
-
 // Local login strategy
 // writerSchema.plugin(passportLocalMongoose);
-
-writerSchema.plugin(findOrCreate);
-
-const writerModel = writerConnection.model("Writer", writerSchema);
-
-// Local login strategy
 // passport.use(writerModel.createStrategy());
-// passport.serializeUser(writerModel.serializeUser());
-// passport.deserializeUser(writerModel.deserializeUser());
 
-// OAuth login strategy
 passport.serializeUser(function(writer, done) {
   done(null, writer.id);
 });
@@ -70,24 +45,6 @@ passport.deserializeUser(function(id, done) {
     done(err, writer);
   });
 });
-
-const journalSchema = new mongoose.Schema(
-  {
-    title: String,
-    content: String,
-  },
-  {
-    versionKey: false,
-    timestamps: true,
-  }
-);
-
-const journalModel = journalConnection.model("Journal", journalSchema);
-
-module.exports = {
-  writerModel,
-  journalModel,
-};
 
 const homeStartingContent = faker.lorem.words(100);
 const aboutContent = faker.lorem.words(100);
@@ -100,13 +57,15 @@ passport.use(new GoogleStrategy({
   callbackURL: "http://localhost:3000/auth/google/compose",
   userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
-  // Implement a simple check against my googleID
+  // Implement a simple check against my googleID, already initialized in writerDB
   function(accessToken, refreshToken, profile, cb) {
     writerModel.findOne({ googleId: profile.id }, function (err, writer) {
-      if (profile.id === process.env.MY_GOOGLEID) {
-        return cb(err, writer);
+      if (err) {
+        return cb(err);
+      } else if (!writer) {
+        return cb(null, false, { message: 'Invalid user' });
       } else {
-        return cb("Invalid user.");
+        return cb(err, writer)
       }
     });
   }

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const {writerConnection, journalConnection} = require('./connections');
-const findOrCreate = require("mongoose-findorcreate");
 
 // const mongoAtlas = `mongodb+srv://admin-seyoung:${process.env.MONGODB_PW}@cluster0.kgiyy.mongodb.net/blogDB`
 
@@ -20,8 +19,6 @@ const writerSchema = new mongoose.Schema({
     timestamps: true,
   });
   
-writerSchema.plugin(findOrCreate);
-
 const writerModel = writerConnection.model('Writer', writerSchema);
 
 const journalSchema = new mongoose.Schema({
